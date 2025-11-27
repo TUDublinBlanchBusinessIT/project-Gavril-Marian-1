@@ -1,16 +1,22 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image,Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Image, Alert } from "react-native";
 import { styles } from "../styles";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/config";
+import { firebase } from "../firebase/firebase"; 
 
 export default function SignUpScreen({ navigation }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-   const handleSignUp = () => {
-    createUserWithEmailAndPassword(auth, email, password)
+  const handleSignUp = () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password");
+      return;
+    }
+
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
       .then(() => {
         Alert.alert("Success!", "Account created!");
         navigation.navigate("Login");
@@ -22,8 +28,6 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <View style={styles.background}>
-
-      
       <Image
         source={require("../assets/GrabandGologo.jpg")}
         style={styles.logo}
@@ -60,12 +64,9 @@ export default function SignUpScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.link}>
-            Already have an account? Log In
-          </Text>
+          <Text style={styles.link}>Already have an account? Log In</Text>
         </TouchableOpacity>
       </View>
-
     </View>
   );
 }

@@ -1,29 +1,32 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image,Alert } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Image, Alert } from "react-native";
 import { styles } from "../styles";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/config";
+import { firebase } from "../firebase/firebase"; 
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const handleLogin = () => {
-    signInWithEmailAndPassword(auth, email, password)
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password");
+      return;
+    }
+
+    firebase
+      .auth()
+      .signInWithEmailAndPassword(email, password)
       .then(() => {
         Alert.alert("Success!", "Logged in!");
-        navigation.navigate("Home"); 
+        navigation.navigate("Home");
       })
       .catch((error) => {
         Alert.alert("Error", error.message);
       });
   };
 
-
-
   return (
     <View style={styles.background}>
-
-      
       <Image
         source={require("../assets/GrabandGologo.jpg")}
         style={styles.logo}
@@ -53,12 +56,9 @@ export default function LoginScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate("SignUp")}>
-          <Text style={styles.link}>
-            Don't have an account? Sign Up
-          </Text>
+          <Text style={styles.link}>Don't have an account? Sign Up</Text>
         </TouchableOpacity>
       </View>
-
     </View>
   );
 }
