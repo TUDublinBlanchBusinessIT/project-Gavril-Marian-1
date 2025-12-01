@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, Alert } from "react-native";
 import { styles } from "../styles";
-import { firebase } from "../firebase/firebase"; 
+import { firebase } from "../firebase/firebase";
 
 export default function SignUpScreen({ navigation }) {
   const [username, setUsername] = useState("");
@@ -9,20 +9,36 @@ export default function SignUpScreen({ navigation }) {
   const [password, setPassword] = useState("");
 
   const handleSignUp = () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please enter email and password");
+    if (!username || !email || !password) {
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then(() => {
-        Alert.alert("Success!", "Account created!");
-        navigation.navigate("Login");
+      .then((userCredential) => {
+        const uid = userCredential.user.uid;
+
+        // Save user info in Firestore
+        firebase.firestore()
+          .collection("users")
+          .doc(uid)
+          .set({
+            username: username,
+            email: email,
+            profilePhoto: null   
+          })
+          .then(() => {
+            Alert.alert("Success!", "Account created!");
+            navigation.navigate("Login");
+          })
+          .catch((error) => {
+            Alert.alert("Firestore Error", error.message);
+          });
       })
       .catch((error) => {
-        Alert.alert("Error", error.message);
+        Alert.alert("Auth Error", error.message);
       });
   };
 

@@ -5,25 +5,52 @@ import {
   Image, 
   TouchableOpacity, 
   Alert, 
+  TextInput,
   StyleSheet 
 } from "react-native";
+
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system/legacy";   // ✅ FIXED Base64 error
+
 import { firebase } from "../firebase/firebase";
 
 export default function ProfileScreen({ navigation }) {
   const [profileImage, setProfileImage] = useState(null);
+  const [username, setUsername] = useState("");
+  const [editing, setEditing] = useState(false);
 
-  
+  const user = firebase.auth().currentUser;
+
+  // 🔹 Load username + profile photo from Firestore
   useEffect(() => {
-    (async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission Needed", "We need access to your photo gallery.");
-      }
-    })();
+    firebase.firestore()
+      .collection("users")
+      .doc(user.uid)
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          setUsername(data.username);
+          if (data.profilePhoto) setProfileImage(data.profilePhoto);
+        }
+      });
   }, []);
 
-  
+  // 🔹 Convert file to Base64
+  const convertImageToBase64 = async (uri) => {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: "base64",
+      });
+
+      return "data:image/jpeg;base64," + base64;
+    } catch (error) {
+      console.error("Base64 error:", error);
+      return null;
+    }
+  };
+
+  // 🔹 Pick image + save Base64 to Firestore
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -33,13 +60,46 @@ export default function ProfileScreen({ navigation }) {
     });
 
     if (!result.canceled) {
-      setProfileImage(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+
+      // Show image instantly
+      setProfileImage(uri);
+
+      // Convert to Base64
+      const base64 = await convertImageToBase64(uri);
+      if (!base64) {
+        Alert.alert("Error", "Could not convert image");
+        return;
+      }
+
+      // Save Base64 directly to Firestore
+      await firebase.firestore()
+        .collection("users")
+        .doc(user.uid)
+        .update({
+          profilePhoto: base64,
+        });
+
+      Alert.alert("Success!", "Profile photo updated.");
     }
   };
 
-  
+  // 🔹 Save updated username
+  const saveUsername = () => {
+    firebase.firestore()
+      .collection("users")
+      .doc(user.uid)
+      .update({ username: username })
+      .then(() => {
+        setEditing(false);
+        Alert.alert("Updated!", "Username updated.");
+      });
+  };
+
+  // 🔹 Log out
   const handleLogout = () => {
-    firebase.auth().signOut()
+    firebase.auth()
+      .signOut()
       .then(() => navigation.replace("Login"))
       .catch((err) => Alert.alert("Error", err.message));
   };
@@ -47,30 +107,47 @@ export default function ProfileScreen({ navigation }) {
   return (
     <View style={styles.container}>
 
-      {/* Profile Image */}
+      {/* 🔹 Profile Image */}
       <TouchableOpacity onPress={pickImage}>
         <Image
           source={
             profileImage
               ? { uri: profileImage }
-              : require("../assets/defaultProfile.png") 
+              : require("../assets/defaultProfile.png")
           }
           style={styles.profileImage}
         />
       </TouchableOpacity>
 
-      
+      {/* Change Photo button */}
       <TouchableOpacity style={styles.changeBtn} onPress={pickImage}>
         <Text style={styles.changeBtnText}>Change Profile Photo</Text>
       </TouchableOpacity>
 
-      
-      <Text style={styles.username}>Your Username</Text>
+      {/* 🔹 Username */}
+      {editing ? (
+        <View style={{ alignItems: "center" }}>
+          <TextInput
+            style={styles.input}
+            value={username}
+            onChangeText={setUsername}
+          />
 
-      
-      
+          <TouchableOpacity style={styles.saveBtn} onPress={saveUsername}>
+            <Text style={styles.saveBtnText}>Save</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          <Text style={styles.username}>{username}</Text>
 
-      
+          <TouchableOpacity style={styles.editBtn} onPress={() => setEditing(true)}>
+            <Text style={styles.editBtnText}>Edit Username</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {/* 🔹 Logout */}
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>Log Out</Text>
       </TouchableOpacity>
@@ -112,6 +189,28 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "bold",
     marginTop: 30,
+    color: "#312E2E",
+  },
+
+  input: {
+    backgroundColor: "white",
+    width: 200,
+    height: 40,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginTop: 20,
+  },
+
+  saveBtn: {
+    backgroundColor: "#E8DCC3",
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+
+  saveBtnText: {
+    fontWeight: "bold",
     color: "#312E2E",
   },
 
