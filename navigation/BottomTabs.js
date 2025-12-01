@@ -7,6 +7,8 @@ import CategoriesScreen from "../screens/CategoriesScreen";
 import SearchScreen from "../screens/SearchScreen";
 import MessagesScreen from "../screens/MessagesScreen";
 import ProfileScreen from "../screens/ProfileScreen";
+import LendScreen from "../screens/LendScreen";
+
 
 const Tab = createBottomTabNavigator();
 
@@ -33,6 +35,7 @@ export default function BottomTabs() {
           if (route.name === "Search") iconName = "search-outline";
           if (route.name === "Messages") iconName = "chatbubble-outline";
           if (route.name === "Profile") iconName = "person-circle-outline";
+          if (route.name === "Lend") iconName = "add-circle-outline";
 
           return <Ionicons name={iconName} size={25} color={color} />;
         },
@@ -43,6 +46,7 @@ export default function BottomTabs() {
       <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Messages" component={MessagesScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Lend" component={LendScreen} />
     </Tab.Navigator>
   );
 }
