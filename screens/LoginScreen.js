@@ -18,7 +18,7 @@ export default function LoginScreen({ navigation }) {
       .signInWithEmailAndPassword(email, password)
       .then(() => {
         Alert.alert("Success!", "Logged in!");
-        navigation.navigate("Home");
+        navigation.navigate("Tabs");
       })
       .catch((error) => {
         Alert.alert("Error", error.message);

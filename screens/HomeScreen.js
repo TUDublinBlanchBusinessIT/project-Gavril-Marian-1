@@ -1,12 +1,25 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 
 export default function HomeScreen() {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text style={{ fontSize: 26, fontWeight: "bold" }}>
+    <ScrollView 
+      contentContainerStyle={{
+        padding: 20,
+      }}
+      style={{ flex: 1, backgroundColor: "#E6C288" }}
+    >
+      <Text 
+        style={{ 
+          fontSize: 26, 
+          fontWeight: "bold",
+          marginTop: 40,
+          textAlign: "center" 
+        }}
+      >
         Welcome to Grab and Go!
       </Text>
-    </View>
+    </ScrollView>
   );
 }
+
