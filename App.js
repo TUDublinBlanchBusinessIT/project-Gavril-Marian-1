@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import ItemDetails from "./screens/ItemDetails";
 
 import BottomTabs from "./navigation/BottomTabs.js";
 import LoginScreen from "./screens/LoginScreen";
@@ -15,6 +16,7 @@ export default function App() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="Tabs" component={BottomTabs} />
+      <Stack.Screen name="ItemDetails" component={ItemDetails} />
     </Stack.Navigator>
   </NavigationContainer>
   );
