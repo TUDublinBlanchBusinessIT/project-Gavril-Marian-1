@@ -12,7 +12,6 @@ export default function ItemDetails({ route, navigation }) {
   const { item } = route.params;
   const [ownerName, setOwnerName] = useState("");
 
-  // Fetch item owner's username
   useEffect(() => {
     firebase
       .firestore()
@@ -26,39 +25,40 @@ export default function ItemDetails({ route, navigation }) {
       });
   }, []);
 
-  // Start chat with item owner
-  const startChat = () => {
-    navigation.navigate("ChatScreen", {
-      ownerId: item.ownerId,
-      ownerName: ownerName
-    });
-  };
+ const startChat = () => {
+  const currentUser = firebase.auth().currentUser;
+
+  const chatId =
+    currentUser.uid < item.ownerId
+      ? `${currentUser.uid}_${item.ownerId}`
+      : `${item.ownerId}_${currentUser.uid}`;
+
+  navigation.navigate("ChatScreen", {
+    chatId: chatId,
+    chatWith: item.ownerId,
+    chatWithName: ownerName,
+  });
+};
+
 
   return (
     <View style={styles.container}>
-      
-      {/* IMAGE */}
-      <Image source={{ uri: item.imageUrl }} style={styles.image} />
 
-      {/* TITLE */}
+      
+      <Image source={{ uri: item.imageBase64 }} style={styles.image} />
+
       <Text style={styles.title}>{item.title}</Text>
 
-      {/* CATEGORY */}
       <Text style={styles.category}>{item.category.toUpperCase()}</Text>
 
-      {/* PRICE */}
       <Text style={styles.price}>€{item.price}</Text>
 
-      {/* DESCRIPTION */}
       <Text style={styles.desc}>{item.desc}</Text>
 
-      {/* LOCATION */}
       <Text style={styles.address}>📍 {item.address}</Text>
 
-      {/* OWNER */}
       <Text style={styles.owner}>Owner: {ownerName}</Text>
 
-      {/* MESSAGE BUTTON */}
       <TouchableOpacity style={styles.button} onPress={startChat}>
         <Text style={styles.buttonText}>Message Owner</Text>
       </TouchableOpacity>

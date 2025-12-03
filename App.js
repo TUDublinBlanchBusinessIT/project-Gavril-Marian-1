@@ -7,6 +7,7 @@ import ItemDetails from "./screens/ItemDetails";
 import BottomTabs from "./navigation/BottomTabs";
 import LoginScreen from "./screens/LoginScreen";
 import SignUpScreen from "./screens/SignUpScreen";
+import ChatScreen from "./screens/ChatScreen";
 
 const Stack = createStackNavigator();
 
@@ -19,6 +20,7 @@ export default function App() {
           <Stack.Screen name="SignUp" component={SignUpScreen} />
           <Stack.Screen name="Tabs" component={BottomTabs} />
           <Stack.Screen name="ItemDetails" component={ItemDetails} />
+          <Stack.Screen name="ChatScreen" component={ChatScreen} />
         </Stack.Navigator>
 
         <StatusBar style="auto" />
