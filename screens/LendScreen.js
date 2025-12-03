@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
   Image,
-  Alert, 
-  StyleSheet
+  Alert,
+  StyleSheet,
+  ScrollView
 } from "react-native";
 
-import { Picker } from "@react-native-picker/picker";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { firebase } from "../firebase/firebase";
@@ -22,6 +22,7 @@ export default function LendScreen({ navigation }) {
   const [address, setAddress] = useState("");
   const [coords, setCoords] = useState(null);
   const [imageBase64, setImageBase64] = useState(null);
+  const [showCategories, setShowCategories] = useState(false);
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -87,92 +88,144 @@ export default function LendScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
+      <View style={styles.card}>
 
-      <View style={styles.imageWrapper}>
-        <Image
-          source={
-            imageBase64
-              ? { uri: imageBase64 }
-              : require("../assets/defaultProduct.png")
-          }
-          style={styles.image}
-        />
+        {/* IMAGE */}
+        <View style={styles.imageWrapper}>
+          <Image
+            source={
+              imageBase64
+                ? { uri: imageBase64 }
+                : require("../assets/defaultProduct.png")
+            }
+            style={styles.image}
+          />
 
-        <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
-          <Text style={styles.addImageText}>
-            {imageBase64 ? "Change Image" : "Add Image"}
+          <TouchableOpacity style={styles.addImageButton} onPress={pickImage}>
+            <Text style={styles.addImageText}>
+              {imageBase64 ? "Change Image" : "Add Image"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={styles.dropdownButton}
+          onPress={() => setShowCategories(true)}
+        >
+          <Text style={styles.dropdownButtonText}>
+            {category ? category.charAt(0).toUpperCase() + category.slice(1) : "Select Category"}
           </Text>
         </TouchableOpacity>
-      </View>
 
-      <View style={styles.pickerBox}>
-        <Picker
-          selectedValue={category}
-          onValueChange={(value) => setCategory(value)}
-        >
-          <Picker.Item label="Select Category" value="" />
-          <Picker.Item label="Tools" value="tools" />
-          <Picker.Item label="Electronics" value="electronics" />
-          <Picker.Item label="Household" value="household" />
-          <Picker.Item label="Books" value="books" />
-          <Picker.Item label="Sports Equipment" value="sports" />
-          <Picker.Item label="Games" value="games" />
-          <Picker.Item label="Clothing" value="clothes" />
-          <Picker.Item label="Other" value="other" />
-        </Picker>
-      </View>
 
-      <TextInput 
-        placeholder="Title"
-        placeholderTextColor="#7A7A7A"
-        value={title}
-        onChangeText={setTitle}
-        style={styles.input}
-      />
-
-      <TextInput 
-        placeholder="Description"
-        placeholderTextColor="#7A7A7A"
-        value={desc}
-        onChangeText={setDesc}
-        style={styles.input}
-      />
-
-      {/* ⭐ PRICE WITH EURO SYMBOL ⭐ */}
-      <View style={styles.priceRow}>
-        <Text style={styles.euroSymbol}>€</Text>
-        <TextInput 
-          placeholder="Price"
+        <TextInput
+          placeholder="Title"
           placeholderTextColor="#7A7A7A"
-          value={price}
-          onChangeText={setPrice}
-          style={styles.priceInput}
-          keyboardType="numeric"
+          value={title}
+          onChangeText={setTitle}
+          style={styles.input}
         />
+
+
+        <TextInput
+          placeholder="Description"
+          placeholderTextColor="#7A7A7A"
+          value={desc}
+          onChangeText={setDesc}
+          style={styles.input}
+        />
+
+        {/* PRICE */}
+        <View style={styles.priceRow}>
+          <Text style={styles.euroSymbol}>€</Text>
+          <TextInput
+            placeholder="Price"
+            placeholderTextColor="#7A7A7A"
+            value={price}
+            onChangeText={setPrice}
+            style={styles.priceInput}
+            keyboardType="numeric"
+          />
+        </View>
+
+        {/* LOCATION */}
+        <TouchableOpacity style={styles.locationButton} onPress={handleGetLocation}>
+          <Text style={styles.locationButtonText}>Add My Location</Text>
+        </TouchableOpacity>
+
+        {address ? (
+          <Text style={styles.addressText}>{address}</Text>
+        ) : null}
+
+        {/* POST BUTTON */}
+        <TouchableOpacity style={styles.postButton} onPress={handleSave}>
+          <Text style={styles.postButtonText}>Post Item</Text>
+        </TouchableOpacity>
+
       </View>
 
-      <TouchableOpacity style={styles.locationButton} onPress={handleGetLocation}>
-        <Text style={styles.locationText}>Add My Location</Text>
-      </TouchableOpacity>
+      {/* CATEGORY MODAL */}
+      {showCategories && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
 
-      {address ? <Text style={styles.address}>{address}</Text> : null}
+            <Text style={styles.modalTitle}>Select Category</Text>
 
-      <TouchableOpacity style={styles.button} onPress={handleSave}>
-        <Text style={styles.buttonText}>Post Item</Text>
-      </TouchableOpacity>
+            {[
+              "tools",
+              "electronics",
+              "household",
+              "books",
+              "sports",
+              "games",
+              "clothes",
+              "other"
+            ].map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => {
+                  setCategory(cat);
+                  setShowCategories(false);
+                }}
+                style={styles.modalOption}
+              >
+                <Text style={styles.modalOptionText}>
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
 
-    </View>
+            <TouchableOpacity
+              onPress={() => setShowCategories(false)}
+              style={styles.modalCancel}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+
+          </View>
+        </View>
+      )}
+
+    </ScrollView>
   );
 }
+
+/* ----------------- STYLES ------------------ */
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#E6C288",
+  },
+
+  card: {
+    backgroundColor: "#E8DCC3",
+    margin: 20,
     padding: 20,
+    borderRadius: 18,
     alignItems: "center",
-    paddingTop: 40,
+    elevation: 4,
   },
 
   imageWrapper: {
@@ -183,14 +236,14 @@ const styles = StyleSheet.create({
   image: {
     width: 160,
     height: 160,
-    borderRadius: 10,
-    backgroundColor: "#E8DCC3",
+    borderRadius: 12,
+    backgroundColor: "#D8C7A5",
   },
 
   addImageButton: {
     backgroundColor: "#5A3E2B",
     paddingVertical: 10,
-    paddingHorizontal: 20,
+    paddingHorizontal: 30,
     borderRadius: 10,
     marginTop: 10,
   },
@@ -201,37 +254,45 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 
-  pickerBox: {
+  dropdownButton: {
     width: "100%",
-    backgroundColor: "#E8DCC3",
+    backgroundColor: "#F4EAD5",
+    padding: 14,
     borderRadius: 12,
-    marginBottom: 18,
+    marginBottom: 15,
+  },
+
+  dropdownButtonText: {
+    fontSize: 16,
+    color: "#312E2E",
+    fontWeight: "600",
   },
 
   input: {
     width: "100%",
-    backgroundColor: "#E8DCC3",
+    backgroundColor: "#F4EAD5",
     padding: 14,
     borderRadius: 12,
-    marginBottom: 18,
+    marginBottom: 15,
     color: "#312E2E",
+    fontSize: 16,
   },
 
   priceRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#E8DCC3",
+    backgroundColor: "#F4EAD5",
     padding: 14,
     borderRadius: 12,
-    marginBottom: 18,
+    marginBottom: 15,
     width: "100%",
   },
 
   euroSymbol: {
     fontSize: 18,
     color: "#312E2E",
+    marginRight: 10,
     fontWeight: "bold",
-    marginRight: 8,
   },
 
   priceInput: {
@@ -241,28 +302,28 @@ const styles = StyleSheet.create({
   },
 
   locationButton: {
-    backgroundColor: "#E8DCC3",
+    backgroundColor: "#5A3E2B",
     padding: 14,
     borderRadius: 12,
-    marginBottom: 10,
-    width: "100%",
     alignItems: "center",
+    width: "100%",
+    marginBottom: 10,
   },
 
-  locationText: {
+  locationButtonText: {
+    color: "white",
     fontSize: 16,
-    color: "#312E2E",
     fontWeight: "bold",
   },
 
-  address: {
-    fontSize: 16,
-    marginBottom: 25,
+  addressText: {
+    fontSize: 15,
     color: "#312E2E",
-    fontWeight: "600",
+    marginBottom: 15,
+    marginTop: -5,
   },
 
-  button: {
+  postButton: {
     backgroundColor: "#5A3E2B",
     padding: 15,
     borderRadius: 12,
@@ -271,9 +332,59 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  buttonText: {
+  postButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  /* ---------- MODAL STYLES ----------- */
+
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+    paddingBottom: 50,
+  },
+
+  modalBox: {
+    backgroundColor: "#E8DCC3",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+  },
+
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 10,
+    color: "#312E2E",
+  },
+
+  modalOption: {
+    paddingVertical: 12,
+  },
+
+  modalOptionText: {
+    fontSize: 16,
+    color: "#312E2E",
+  },
+
+  modalCancel: {
+    marginTop: 20,
+    paddingVertical: 12,
+    backgroundColor: "#5A3E2B",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+
+  modalCancelText: {
     color: "white",
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: "700",
   },
 });
