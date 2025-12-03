@@ -9,53 +9,69 @@ import {
 import { firebase } from "../firebase/firebase";
 
 export default function ItemDetails({ route, navigation }) {
-  const { item } = route.params;
+  const { item, itemData } = route.params;
+  const realItem = item || itemData;
+
   const [ownerName, setOwnerName] = useState("");
 
   useEffect(() => {
+    if (!realItem) return;
+
     firebase
       .firestore()
       .collection("users")
-      .doc(item.ownerId)
+      .doc(realItem.ownerId)
       .get()
       .then((doc) => {
-        if (doc.exists) {
-          setOwnerName(doc.data().username);
-        }
+        if (doc.exists) setOwnerName(doc.data().username);
       });
   }, []);
 
- const startChat = () => {
-  const currentUser = firebase.auth().currentUser;
+  const startChat = () => {
+    const currentUser = firebase.auth().currentUser;
 
-  const chatId =
-    currentUser.uid < item.ownerId
-      ? `${currentUser.uid}_${item.ownerId}`
-      : `${item.ownerId}_${currentUser.uid}`;
+    const chatId =
+      currentUser.uid < realItem.ownerId
+        ? `${currentUser.uid}_${realItem.ownerId}`
+        : `${realItem.ownerId}_${currentUser.uid}`;
 
-  navigation.navigate("ChatScreen", {
-    chatId: chatId,
-    chatWith: item.ownerId,
-    chatWithName: ownerName,
-  });
-};
+    navigation.navigate("ChatScreen", {
+      chatId: chatId,
+      chatWith: realItem.ownerId,
+      chatWithName: ownerName,
+    });
+  };
 
+  if (!realItem) {
+    return (
+      <View style={styles.container}>
+        <Text>Loading item...</Text>
+      </View>
+    );
+  }
+
+  const imageSource = realItem.imageBase64
+    ? { uri: realItem.imageBase64 }
+    : require("../assets/defaultProfile.png");
 
   return (
     <View style={styles.container}>
-
       
-      <Image source={{ uri: item.imageBase64 }} style={styles.image} />
+      <Image source={imageSource} style={styles.image} />
 
-      <Text style={styles.title}>{item.title}</Text>
+      <Text style={styles.title}>{realItem.title}</Text>
 
-      <Text style={styles.category}>{item.category.toUpperCase()}</Text>
+      <Text style={styles.category}>
+        {realItem.category ? realItem.category.toUpperCase() : ""}
+      </Text>
 
-      <Text style={styles.price}>€{item.price}</Text>
+      <Text style={styles.price}>€{realItem.price}</Text>
 
-      <Text style={styles.desc}>{item.desc}</Text>
+      <Text style={styles.subPrice}>
+        Price {realItem.price}€ per day
+      </Text>
 
-      <Text style={styles.address}>📍 {item.address}</Text>
+      <Text style={styles.address}>📍 {realItem.address}</Text>
 
       <Text style={styles.owner}>Owner: {ownerName}</Text>
 
@@ -75,53 +91,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   image: {
-    width: 260,
-    height: 260,
-    borderRadius: 12,
-    marginBottom: 20,
+    width: 300,
+    height: 300,
+    borderRadius: 18,
+    marginBottom: 25,
     backgroundColor: "#E8DCC3",
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     color: "#312E2E",
+    marginBottom: 4,
   },
   category: {
     fontSize: 16,
     fontWeight: "600",
     color: "#5A3E2B",
-    marginTop: 5,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   price: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: "bold",
     color: "#5A3E2B",
-    marginBottom: 15,
+    marginBottom: 4,
   },
-  desc: {
+  subPrice: {
     fontSize: 16,
     color: "#312E2E",
-    textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 22,
   },
   address: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
     color: "#312E2E",
-    marginBottom: 20,
+    fontWeight: "600",
+    marginBottom: 22,
   },
   owner: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     color: "#312E2E",
-    marginBottom: 30,
+    marginBottom: 40,
   },
   button: {
     backgroundColor: "#5A3E2B",
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 50,
+    borderRadius: 12,
   },
   buttonText: {
     color: "white",
