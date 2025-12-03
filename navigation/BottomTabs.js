@@ -3,7 +3,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
 import HomeScreen from "../screens/HomeScreen";
-import CategoriesScreen from "../screens/CategoriesScreen";
 import SearchScreen from "../screens/SearchScreen";
 import MessagesScreen from "../screens/MessagesScreen";
 import ProfileScreen from "../screens/ProfileScreen";
@@ -31,7 +30,6 @@ export default function BottomTabs() {
           let iconName;
 
           if (route.name === "HomeTab") iconName = "home-outline";
-          if (route.name === "Categories") iconName = "grid-outline";
           if (route.name === "Search") iconName = "search-outline";
           if (route.name === "Messages") iconName = "chatbubble-outline";
           if (route.name === "Profile") iconName = "person-circle-outline";
@@ -42,7 +40,6 @@ export default function BottomTabs() {
       })}
     >
       <Tab.Screen name="HomeTab" component={HomeScreen} options={{ title: "Home" }} />
-      <Tab.Screen name="Categories" component={CategoriesScreen} />
       <Tab.Screen name="Search" component={SearchScreen} />
       <Tab.Screen name="Messages" component={MessagesScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
